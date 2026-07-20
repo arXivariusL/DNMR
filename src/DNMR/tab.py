@@ -10,16 +10,19 @@ import traceback
 import pandas as pd
 
 class Tab(QWidget):
+    """ This is the base class for all tabs in the application. Since each tab has one plot, 
+    it contains the basic functionality for plotting and updating the plots. """
     def __init__(self, data_widgets, name, parent=None):
         super(Tab, self).__init__(parent)
-        
+
+        # Create the matplotlib figure and canvas
         self.fig = Figure()
         self.canvas = FigureCanvas(self.fig)
         self.toolbar = NavigationToolbar(self.canvas, self)
-        
+        # Define the data_widgets dictionary as an attribute of the tab class, so it is accessible to all tabs.
         self.data_widgets = data_widgets
         self.data_widgets[name] = self
-        
+        # Create a name attribute for the tab, so it can be identified in the data_widgets dictionary.
         self._name = name
 
         # layout stuff
@@ -32,10 +35,14 @@ class Tab(QWidget):
         self.setLayout(layout)
 
         self.ax = self.fig.add_subplot(111)
-
+        # Add the file selector to the tab. This is a custom widget that allows the user to select files to load.
         self.fileselector = data_widgets['fileselector'] # Keep at bottom - cannot be used until file is read!
         self.fileselector.callbacks += [self.update]
 
+    # The following functions are meant to be overridden by the child classes. 
+    # They are called by the parent class, but the child class can implement them to do whatever it wants.
+    # This is a way to enforce a common interface for all tabs, while still allowing for flexibility in the implementation, 
+    # since each tab has different functionality. 
     def generate_layout(self):
         print(f'GENERATE_LAYOUT ({self._name})')
         return None
@@ -59,19 +66,21 @@ class Tab(QWidget):
         # save the current zoom for restoring later
         old_x_lim = self.ax.get_xlim()
         old_y_lim = self.ax.get_ylim()
-        
+
+        # If the hold plots checkbox is not checked, clear the axes before plotting.
         if not(self.fileselector.checkbox_holdplots.isChecked()):
             self.ax.clear()
-
+        # Call the plot_logic function, which is implemented by the child class. This is where the actual plotting happens.
         try:
             print(f'PLOT_LOGIC ({self._name})')
             self.plot_logic()
-        except:
+        except: # If there is an error in the plot_logic function, print the traceback to the console. This is useful for debugging.
             print(f'Failure in plot_logic\n{"-"*100}')
             traceback.print_exc()
             print("-"*100)
             
-        # Thanks, azelcer (https://stackoverflow.com/questions/70336467/keep-zoom-and-ability-to-zoom-out-to-current-data-extent-in-matplotlib-pyplot)
+        # Thanks, azelcer 
+        # (https://stackoverflow.com/questions/70336467/keep-zoom-and-ability-to-zoom-out-to-current-data-extent-in-matplotlib-pyplot)
         self.ax.relim()
         self.ax.autoscale()
         self.toolbar.update() # Clear the axes stack

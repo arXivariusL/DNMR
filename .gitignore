@@ -10,6 +10,7 @@ dnmr-env312/
 .venv/
 venv/
 env/
+.venv-dev/
 
 # Build artifacts
 build/
@@ -21,4 +22,8 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
 

@@ -17,6 +17,11 @@ from DNMR.miniwidgets import *
 from DNMR.tab import Tab
 
 class TabT2Fit(Tab):
+    """ This is the tab for T2 fitting. It contains the plot and the controls for fitting. """
+    # Create a dictionary to hold the output frames for each fitting routine. This is so that each fitting routine can have its own set of controls and output.
+    # Each output frame is a dictionary with the following keys:
+    # - 'frame': the QFrame widget that contains the controls and output for the fitting routine
+    # - 'widgets': a list of FitParameterWidget objects that are the controls for the fitting routine
     output_frames = {}
 
     def __init__(self, data_widgets, parent=None):
@@ -29,9 +34,12 @@ class TabT2Fit(Tab):
         self.sigmas = None
         
     def get_current_oframe(self):
+        # Get the current output frame based on the selected fitting routine. 
+        # This is done by looking up the current text of the combobox in the output_frames dictionary.
         return self.output_frames[self.combobox_fittingroutine.currentText()]
 
     def generate_layout(self):
+
         self.combobox_fittingroutine = QComboBox()
         self.combobox_fittingroutine.currentIndexChanged.connect(self.update_fit_type)
         
@@ -319,21 +327,34 @@ class TabT2Fit(Tab):
         self.update()
         
     def get_exported_data(self):
-        out_frame = self.get_current_oframe()
-        params_dict = {}
+        """ This function is called when the export button is clicked. It will export the data from the current tab to a CSV file.
+        It will return a dictionary with the data to be exported. The keys are the column names and the values are the data. """
+        # Get the current output frame based on the selected fitting routine.
+        out_frame = self.get_current_oframe() 
+        # Create a dictionary to hold the fit parameters and their uncertainties. 
+        # The keys are the parameter names and the values are lists containing the parameter value and its uncertainty.
+        params_dict = {} 
+        # If the fit has been performed and the parameters have been determined, add them to the dictionary.
         if(self.x0 is not None):
+            # The cnt counter is used to index into the x0 and sigmas arrays, which contain the fit parameters and their uncertainties.
             cnt = 0
+            # Iterate over the widgets in the output frame.
             for wi in out_frame['widgets']:
-                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ]
+                # Add the parameter value to the dictionary.
+                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ] 
+                # Add the parameter uncertainty to the dictionary.
                 params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
-                cnt += 1
-        
-        index = self.fileselector.spinbox_index.value()
+                cnt += 1 
+        # Get the selected index from the file selector.
+        index = self.fileselector.spinbox_index.value() 
+        # Create a dictionary to hold the data to be exported. The keys are the column names and the values are the data.
         pd = {
                  'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
                  'fft': self.data_widgets['tab_ft'].data[1][index],
                  'delays': self.data[0],
                  'integrals': self.data[1],
                 }
-        pd.update(params_dict)
+        # Add the pd dictionary to the params_dict dictionary.
+        pd.update(params_dict) 
         return pd
+    

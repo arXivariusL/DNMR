@@ -19,7 +19,8 @@ dependencies = [
     "matplotlib", 
     "PyQt6", 
     "pandas",
-    "pytnt"
+    "pytnt",
+    "scipy"
 ]
 license="GPL-3.0-only"
 license-files=["LICENSE",]

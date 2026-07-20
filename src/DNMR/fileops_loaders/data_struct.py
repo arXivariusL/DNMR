@@ -3,6 +3,9 @@ import h5py as hdf
 import traceback
 import re
 
+# Defines a function to convert an hdf5 group (i.e., a directory-like structure in an HDF5 file) 
+# into a nested dictionary. The function recursively visits each item in the group and 
+# adds it to the dictionary, converting datasets to numpy arrays when possible. 
 def hdf_to_dict(g): # takes group, gives dict
     def t(n, g, d):
         ds = d

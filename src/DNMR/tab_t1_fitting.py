@@ -32,15 +32,23 @@ class TabT1Fit(Tab):
         return self.output_frames[self.combobox_fittingroutine.currentText()]
 
     def generate_layout(self):
+        # Make a combobox to select the fitting routine. 
         self.combobox_fittingroutine = QComboBox()
+        # Connect the combobox to the update_fit_type function, so that when the user 
+        # selects a new fitting routine, the output frame is updated.
         self.combobox_fittingroutine.currentIndexChanged.connect(self.update_fit_type)
         
+        # Make a pushbutton to fit the data. This will call the fit function when clicked.
         self.pushbutton_fit = QPushButton('Fit')
         self.pushbutton_fit.clicked.connect(self.fit)
         
+        # Make a checkbox to normalize the data. This will divide the data by the maximum value, 
+        # so that the data is between 0 and 1. It is checked by default.
         self.checkbox_normalize = QCheckBox('Normalize?')
         self.checkbox_normalize.setCheckState(Qt.CheckState(2)) # checked.
 
+        # Make a layout to hold the combobox, pushbutton, and checkbox. 
+        # This will be added to the main layout of the tab.
         l = QHBoxLayout()
         lv = QVBoxLayout()
         lv.addWidget(self.combobox_fittingroutine)
@@ -48,9 +56,12 @@ class TabT1Fit(Tab):
         l.addLayout(lv)
         l.addWidget(self.pushbutton_fit)
 
+        # Make a frame to display the formula for the selected fitting routine. 
+        # This will be updated when the user selects a new fitting routine.
         self.formula_frame = QFrame()
         self.formula_frame.setFrameShape(QFrame.Shape.StyledPanel)
 
+        # Make a layout to hold the formula label. This will be added to the formula frame.
         formula_layout = QVBoxLayout()
 
         self.formula_label = QPlainTextEdit()
@@ -70,6 +81,7 @@ class TabT1Fit(Tab):
 
         l.addWidget(self.formula_frame, stretch=3)
 
+
         def add_fit_frame(name, *args, **kwargs):
             ''' Creates a frame widget for a new fit type and its output. args are, in order, the name of a fit variable, then unit string, then repeat.
             
@@ -80,7 +92,9 @@ class TabT1Fit(Tab):
             frm = QFrame() # TODO: Make this better.
             frm.hide()
             lo = QVBoxLayout()
+            # Add the frame to the output_frames dictionary, so that it can be accessed later. The key is the name of the fit type.
             self.output_frames[name] = { 'frame': frm, 'widgets': [] }
+            
             
             xplot = kwargs['xplot'] if 'xplot' in kwargs.keys() else []
             yplot = kwargs['yplot'] if 'yplot' in kwargs.keys() else []
@@ -444,23 +458,82 @@ class TabT1Fit(Tab):
         
 
         
-        
+    '''    
     def get_exported_data(self):
+        # Get the current output frame, which contains the widgets for the selected fitting routine. 
+        # Each widget corresponds to a fit parameter and contains its value and uncertainty.
         out_frame = self.get_current_oframe()
+        print(f'Oframe: {out_frame}')
         params_dict = {}
         if(self.x0 is not None):
             cnt = 0
             for wi in out_frame['widgets']:
+                print(f'Exporting {wi.label} with value {self.x0[cnt]} and uncertainty {self.sigmas[cnt]}')
                 params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ]
                 params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
                 cnt += 1
         
         index = self.fileselector.spinbox_index.value()
+        d = self.fileselector.data
         pd = {
-                 'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
-                 'fft': self.data_widgets['tab_ft'].data[1][index],
+                 #'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
+                 #'fft': self.data_widgets['tab_ft'].data[1][index],
                  'delays': self.data[0],
                  'integrals': self.data[1],
+                 'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
+                 'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
+                 'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
+                 'excluded points': self.excluded_points_indices,
+                 'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(),
+                 'fit type': self.combobox_fittingroutine.currentText(),
+                 #'tt': d['environment_tt']
                 }
-        pd.update(params_dict)
+        #pd.update(params_dict)
         return pd
+    '''
+
+
+    def get_exported_data(self):
+        # Get the current output frame, which contains the widgets for the selected fitting routine. 
+        # Each widget corresponds to a fit parameter and contains its value and uncertainty.
+        out_frame = self.get_current_oframe()
+        print(f'Oframe: {out_frame}')
+        params_dict = {}
+        if(self.x0 is not None):
+            cnt = 0
+            for wi in out_frame['widgets']:
+                print(f'Exporting {wi.label} with value {self.x0[cnt]} and uncertainty {self.sigmas[cnt]}')
+                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ]
+                params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
+                cnt += 1
+
+        print(self.data_widgets)
+
+        index = self.fileselector.spinbox_index.value()
+        d = self.fileselector.data
+        header = {
+            'fit type': self.combobox_fittingroutine.currentText(),
+            'users': d.metadata.users[0]
+            #'file': self.fileselector.get_current_filename()
+        }
+        table = {
+            #'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
+            #'fft': self.data_widgets['tab_ft'].data[1][index],
+            # GENERAL DATA
+            'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
+            'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
+            'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
+            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(),
+            'tt': d['environment_tt'].ravel(),
+            # TAB SPECIFIC DATA
+            'delays': self.data[0],
+            'integrals': self.data[1],
+            'excluded points': self.excluded_points_indices,
+        }
+        #pd.update(params_dict)
+        #return table
+        return {
+            'header': header,
+            'table': table
+        } 
+         

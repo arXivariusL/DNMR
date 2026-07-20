@@ -7,7 +7,14 @@ import numpy as np
 
 import DNMR.fileops as fileops
 
+
+# Here, all widgets are defined. These are the buttons, sliders etc. that are used in the tabs. 
+# They are defined here so that they can be used in multiple tabs, and so that they can be easily modified.
+
+
 class FitParameterWidget(QWidget):
+    """ This widget allows the user to input a fit parameter. It consists of a label, a line edit, 
+    and a checkbox to toggle fixing the parameter to the selected value during fitting. """
     def __init__(self, label, units, parent=None, xplot=False, yplot=False):
         super(FitParameterWidget, self).__init__(parent)
         
@@ -63,6 +70,10 @@ class FitParameterWidget(QWidget):
         return f'{self.label}={self.lineedit_value.text()} {self.units}'
 
 class PhaseAdjustmentWidget(QWidget):
+    """ This widget allows the user to adjust the phase of the data. 
+    It consists of a slider and a label that displays the current phase value. 
+    The phase value is in degrees, and can be adjusted from -180 to 180 degrees. 
+    The callback function is called whenever the slider value is changed. """
     def __init__(self, parent=None, callback=lambda: None):
         super(PhaseAdjustmentWidget, self).__init__(parent)
 
@@ -89,7 +100,7 @@ class FileInfoWidget(QWidget):
         self.setLayout(layout)
         
     def update_items(self, d, length=None, prefix=''):
-        '''Takes a data_struct'''
+        """ Takes a data_struct. """
         if(length is None):
             length = d['size']
         for i in list(d.keys()):
@@ -107,51 +118,78 @@ class FileInfoWidget(QWidget):
                 self.listview_docinfo.addItem(f'{prefix+i}={d[i]}')
                 
 class QuickInfoWidget(QWidget):
+    """ This widget displays a quick summary of the current file and its environment information like temperature, 
+    field, comment, etc. """
     def __init__(self, parent=None):
         super(QuickInfoWidget, self).__init__(parent)
         
+        # As long as no file is loaded, the label will display "Current file: N/A". 
+        # Once a file is loaded, it will display the filename.
         self.label_filetitle = QLabel('Current file: N/A')
+        # The listview will display the environment information like temperature, field, comment, etc.
         self.listview_envinfo = QListWidget()
         
+        # The layout of the widget is a vertical box layout. 
         layout = QVBoxLayout()
+        # The label is added to the layout first, then the listview.
         layout.addWidget(self.label_filetitle)
         layout.addWidget(self.listview_envinfo)
         self.setLayout(layout)
-        
+    
     def update_items(self, fns, d, index):
+        """ This function is called when the file is loaded or the index is changed.
+        It will update the label and the listview with the current file and its environment information. """
         self.listview_envinfo.clear()
         
-        try:
+        try: 
+            # Get the filename from the full path. This is done by splitting the string by '/' and taking the last element.
             fmt_fns = [ f.split('/')[-1].split('\\')[-1] for f in fns ]
+            # If there is only one file, display "Current file: filename". 
+            # If there are multiple files, display "Current files: filename1 + ...".
             self.label_filetitle.setText(f'Current file: {fmt_fns[0]}' if len(fmt_fns)==1 else f'Current files: {fmt_fns[0]} + ...')
             
+            # If the data_struct has a size key, meaning multiple scans are present, 
+            # we refresh the environment information for the current index.
             if('size' in d.keys()):
                 self._update_items(d, index)
+        # In case of any error, we set the label to "Current file: N/A" and clear the listview. 
+        # This is to avoid displaying incorrect information.
         except:
             self.label_filetitle.setText('Current file: N/A')
         
     def _update_items(self, d, index, length=None, prefix=''):
-        '''Takes a data_struct. Updates with all keys starting with environment_'''
-        if(length is None):
+        """ Takes a data_struct. Updates with all keys starting with environment_"""
+        # If length is not provided, we use the size of the data_struct. This is useful for cases where the data_struct has a size key, meaning multiple scans are present.
+        if(length is None): 
             length = d['size']
             
         for i in list(d.keys()):
-            if(i[:len('environment_')] != 'environment_'):
+            # Check if the key starts with 'environment_' to only display environment information. 
+            if(i[:len('environment_')] != 'environment_'): 
                 continue
+            # Set the name of the environment variable (like tt, mf, etc.) by removing the 'environment_' prefix.
             name = prefix+str(i[len('environment_'):])
-            if(isinstance(d[i], fileops.data_struct)):
+            # If the value in the data_struct is a data_struct again, we recursively call this function to display its keys and values. This is useful for nested environment information.
+            if(isinstance(d[i], fileops.data_struct)): 
                 self._update_items(d[i], index, length=length, prefix=name+'/')
+            # If the value is a numpy array, we check its dimensions to display it correctly.
             elif(isinstance(d[i], np.ndarray)):
-                if(d[i].ndim == 1):
-                    s = str(d[i][index])
+                # Check if the array is 1D. This is useful for environment variables that have a single value for each scan.
+                if(d[i].ndim == 1): 
+                    # This is the value of the environment variable for the current scan index.
+                    s = str(d[i][index]) 
+                    # We add the environment variable and its value to the listview.
                     self.listview_envinfo.addItem(f'{name}='+s)
+                # Check if the array is 2D. In this case, the first index is the scan index and the second index is the datapoint. 
                 elif(d[i].ndim == 2):
                     # first index is scan index, second is datapoint
+                    # s now contains multiple values for the current scan index.
                     s = str(d[i][index])
                     self.listview_envinfo.addItem(f'{name}='+s)
             else:
                 self.listview_envinfo.addItem(f'{name}={d[i]}')
-        
+        # In addition to the environment variables, we also check for specific keys like 'comments', 'sample', and 'nucleus' in the data_struct.
+        # We decode them as they are utf-8 encoded bytes and add them to the listview. 
         if('comments' in d.keys()):
             s = str(d['comments'][index][0].decode('utf-8'))
             self.listview_envinfo.addItem(f'comments: '+s)
@@ -163,6 +201,7 @@ class QuickInfoWidget(QWidget):
             self.listview_envinfo.addItem(f'nucleus: '+s)
 
 class SequenceWidget(QWidget):
+    """ This widget displays the sequence of NMR pulses and delays for a given index in the data. """
     def __init__(self, parent=None):
         super(SequenceWidget, self).__init__(parent)
         
@@ -179,7 +218,7 @@ class SequenceWidget(QWidget):
             self._update_items(d['sequence'], index)
         
     def _update_items(self, d, index):
-        '''Takes a data_struct. Updates sequence visualisation'''
+        """ Takes a data_struct. Updates sequence visualisation. """
         pulse_strs = []
         pulse_indices = []
         
