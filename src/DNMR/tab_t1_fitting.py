@@ -221,8 +221,8 @@ class TabT1Fit(Tab):
                 self.plot_data[1],
                 label=params_list
             )
-        self.ax.legend(loc='upper left', fontsize=8, framealpha=0.9)
-               
+        
+          
     def update_fit_type(self):
         for key, val in self.output_frames.items():
             val['frame'].hide()

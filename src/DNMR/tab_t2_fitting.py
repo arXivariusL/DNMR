@@ -197,9 +197,6 @@ class TabT2Fit(Tab):
                 self.plot_data[1],
                 label=params_list
             )
-        
-        self.ax.legend(loc='upper right', fontsize=8, framealpha=0.9)
-
         xmax = np.max(del_times)
         self.ax.set_xlim(0, xmax * 1.05)
         

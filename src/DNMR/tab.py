@@ -88,6 +88,21 @@ class Tab(QWidget):
 
         #self.ax.set_xlim(old_x_lim)  # and restore zoom
         #self.ax.set_ylim(old_y_lim)
-        self.ax.legend()
+        
+        # reserve right margin for legend
+        self.ax.set_position([0.12, 0.12, 0.55, 0.80])
+        
+        # Place the legend outside the plot area.
+        handles, labels = self.ax.get_legend_handles_labels()
+        if labels:
+            self.ax.legend(
+                handles, labels,
+                loc='upper left',
+                bbox_to_anchor=(0.70, 0.92),
+                bbox_transform=self.fig.transFigure,
+                borderaxespad=0.0,
+                fontsize=8,
+                framealpha=0.9,
+            )
 
         self.canvas.draw()
