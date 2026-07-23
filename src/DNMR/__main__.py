@@ -142,7 +142,9 @@ class MainWindow(QWidget):
 
     def export_selected(self):
         #fn = self.filedialog_export.getSaveFileName()[0]
-        fn = 'A'
+        fn = 'results/A'
+        #os.makedirs('results', exist_ok=True)
+
         if not fn:
             return
 
@@ -156,7 +158,7 @@ class MainWindow(QWidget):
             for key, value in header.items():
                 f.write(f"# {key}: {value}\n")
             f.write("\n")
-            #df.to_csv(f, index=False)
+            df.to_csv(f, index=False)
 
         print("Exporting dataframe")
         print(header)

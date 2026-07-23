@@ -511,24 +511,95 @@ class TabT1Fit(Tab):
 
         index = self.fileselector.spinbox_index.value()
         d = self.fileselector.data
+        #print(d)
         header = {
-            'fit type': self.combobox_fittingroutine.currentText(),
-            'users': d.metadata.users[0]
-            #'file': self.fileselector.get_current_filename()
+            
+            #'users': d.metadata.users[0] #error
+            #'file': self.fileselector.get_current_filename()            
         }
         table = {
-            #'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
-            #'fft': self.data_widgets['tab_ft'].data[1][index],
-            # GENERAL DATA
+            
+            # GUI STATE
+            # Time Domain Tab / tab_phase_adj.py
             'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
+            'filter activated': self.data_widgets['tab_phase'].checkbox_filter.isChecked(),
             'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
             'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
-            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(),
-            'tt': d['environment_tt'].ravel(),
+            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(), 
+            'windowing activated': self.data_widgets['tab_phase'].checkbox_multfilter.isChecked(),          
+            'windowing type': self.data_widgets['tab_phase'].combobox_multfiltertype.currentText(),
+            'windowing width': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
+            'windowing position': self.data_widgets['tab_phase'].spinbox_multfilterposition.value(),
+            # Frequency Domain Tab / tab_fourier_transform.py
+            'integration width': self.data_widgets['tab_ft'].spinbox_integration_width.value(),
+            'integration center': self.data_widgets['tab_ft'].spinbox_integration_center.value(),
+
+            
             # TAB SPECIFIC DATA
             'delays': self.data[0],
             'integrals': self.data[1],
             'excluded points': self.excluded_points_indices,
+            # T1 fit and results
+            'fit type': self.combobox_fittingroutine.currentText(), 
+            'fix gamma0': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][0].is_fixed(),          
+            'gamma0 fit result': float(self.x0[0]) if self.x0 is not None else 'None',
+            'gamma0 fit uncertainty': float(self.sigmas[0]) if self.sigmas is not None else 'None',
+            'fix s': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][1].is_fixed(),
+            's fit result': float(self.x0[1]) if self.x0 is not None else 'None',
+            's fit uncertainty': float(self.sigmas[1]) if self.sigmas is not None else 'None',
+            'fix T1': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][2].is_fixed(),
+            'T1 fit result': float(self.x0[2]) if self.x0 is not None else 'None',
+            'T1 fit uncertainty': float(self.sigmas[2]) if self.sigmas is not None else 'None',
+            'fix r': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][3].is_fixed(),
+            'r fit result': float(self.x0[3]) if self.x0 is not None else 'None',
+            'r fit uncertainty': float(self.sigmas[3]) if self.sigmas is not None else 'None',
+
+
+
+            # METADATA
+            'nucleus': d.nucleus[0],
+            'sample': d.sample[0],
+            'comments': d.comments[0],
+            'start time': d.start_time.ravel(),
+            'end time': d.end_time.ravel(),
+
+
+            # MEASUREMENT PARAMETERS
+            'acquisition time': d.params.acquisition_time.ravel(),
+            'actual num acqs': d.params.actual_num_acqs.ravel(),
+            'num acqs': d.params.num_acqs.ravel(),
+            'observed frequency': d.params.obs_freq.ravel(),
+            'post acquisition time': d.params.post_acquisition_time.ravel(),
+            'pre acquisition time': d.params.pre_acquisition_time.ravel(),
+            'ringdown time': d.params.ringdown_time.ravel(),
+
+
+            # ENVIRONMENTAL DATA
+            'tt': d['environment_tt'].ravel(),
+            'mf': d['environment_mf'].ravel(),
+            'nmr_RP100Node_CH1': d.environment_nmr_RP100Node_CH1.ravel(),
+            'nmr_RP100Node_CH2': d.environment_nmr_RP100Node_CH2.ravel(),
+            'r1': d.environment_r1.ravel(),
+            'tps': d.environment_tps.ravel(),
+            
+
+            # SEQUENCE DATA (TAB SPECIFIC)
+            'delay times 0': d.sequence['0'].delay_time.ravel(),
+            'phase cycles 0': d.sequence['0'].phase_cycle.ravel(),
+            'pulse heights 0': d.sequence['0'].pulse_height.ravel(),
+            'pulse widths 0': d.sequence['0'].pulse_width.ravel(),
+
+            'delay times 1': d.sequence['1'].delay_time.ravel(),
+            'phase cycles 1': d.sequence['1'].phase_cycle.ravel(),
+            'pulse heights 1': d.sequence['1'].pulse_height.ravel(),
+            'pulse widths 1': d.sequence['1'].pulse_width.ravel(),
+
+            'delay times 2': d.sequence['2'].delay_time.ravel(),
+            'phase cycles 2': d.sequence['2'].phase_cycle.ravel(),
+            'pulse heights 2': d.sequence['2'].pulse_height.ravel(),
+            'pulse widths 2': d.sequence['2'].pulse_width.ravel()
+
+            
         }
         #pd.update(params_dict)
         #return table
