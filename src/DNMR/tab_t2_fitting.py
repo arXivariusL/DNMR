@@ -323,35 +323,71 @@ class TabT2Fit(Tab):
             traceback.print_exc()
         self.update()
         
-    def get_exported_data(self):
-        """ This function is called when the export button is clicked. It will export the data from the current tab to a CSV file.
-        It will return a dictionary with the data to be exported. The keys are the column names and the values are the data. """
-        # Get the current output frame based on the selected fitting routine.
-        out_frame = self.get_current_oframe() 
-        # Create a dictionary to hold the fit parameters and their uncertainties. 
-        # The keys are the parameter names and the values are lists containing the parameter value and its uncertainty.
-        params_dict = {} 
-        # If the fit has been performed and the parameters have been determined, add them to the dictionary.
-        if(self.x0 is not None):
-            # The cnt counter is used to index into the x0 and sigmas arrays, which contain the fit parameters and their uncertainties.
-            cnt = 0
-            # Iterate over the widgets in the output frame.
-            for wi in out_frame['widgets']:
-                # Add the parameter value to the dictionary.
-                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ] 
-                # Add the parameter uncertainty to the dictionary.
-                params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
-                cnt += 1 
-        # Get the selected index from the file selector.
-        index = self.fileselector.spinbox_index.value() 
-        # Create a dictionary to hold the data to be exported. The keys are the column names and the values are the data.
-        pd = {
-                 'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
-                 'fft': self.data_widgets['tab_ft'].data[1][index],
-                 'delays': self.data[0],
-                 'integrals': self.data[1],
-                }
-        # Add the pd dictionary to the params_dict dictionary.
-        pd.update(params_dict) 
-        return pd
+    # def get_exported_data(self):
+    #     """ This function is called when the export button is clicked. It will export the data from the current tab to a CSV file.
+    #     It will return a dictionary with the data to be exported. The keys are the column names and the values are the data. """
+    #     # Get the current output frame based on the selected fitting routine.
+    #     out_frame = self.get_current_oframe() 
+    #     # Create a dictionary to hold the fit parameters and their uncertainties. 
+    #     # The keys are the parameter names and the values are lists containing the parameter value and its uncertainty.
+    #     params_dict = {} 
+    #     # If the fit has been performed and the parameters have been determined, add them to the dictionary.
+    #     if(self.x0 is not None):
+    #         # The cnt counter is used to index into the x0 and sigmas arrays, which contain the fit parameters and their uncertainties.
+    #         cnt = 0
+    #         # Iterate over the widgets in the output frame.
+    #         for wi in out_frame['widgets']:
+    #             # Add the parameter value to the dictionary.
+    #             params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ] 
+    #             # Add the parameter uncertainty to the dictionary.
+    #             params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
+    #             cnt += 1 
+    #     # Get the selected index from the file selector.
+    #     index = self.fileselector.spinbox_index.value() 
+    #     # Create a dictionary to hold the data to be exported. The keys are the column names and the values are the data.
+    #     pd = {
+    #              'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
+    #              'fft': self.data_widgets['tab_ft'].data[1][index],
+    #              'delays': self.data[0],
+    #              'integrals': self.data[1],
+    #             }
+    #     # Add the pd dictionary to the params_dict dictionary.
+    #     pd.update(params_dict) 
+    #     return pd
+
+
+    def get_tab_specific_exported_data(self):
+        '''Gets the data specific to this tab for export. This is called 
+        by the main window when the export button is clicked.'''
+        d = self.fileselector.data
+        tab_specific_data = {            
+            # T2 plot
+            'delays': self.data[0],
+            'integrals': self.data[1],
+            'excluded points': self.excluded_points_indices,
+            
+            # T2 fit and results
+            'fit type': self.combobox_fittingroutine.currentText(), 
+            'fix A': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][0].is_fixed(),          
+            'A fit result': float(self.x0[0]) if self.x0 is not None else 'None',
+            'A fit uncertainty': float(self.sigmas[0]) if self.sigmas is not None else 'None',
+            'fix T2': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][1].is_fixed(),
+            'T2 fit result': float(self.x0[1]) if self.x0 is not None else 'None',
+            'T2 fit uncertainty': float(self.sigmas[1]) if self.sigmas is not None else 'None',
+            'fix r': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][2].is_fixed(),
+            'r fit result': float(self.x0[2]) if self.x0 is not None else 'None',
+            'r fit uncertainty': float(self.sigmas[2]) if self.sigmas is not None else 'None',
+            
+            # Pulse sequence (tab specific since other tabs can have different pulse sequences)
+            'delay times 0': d.sequence['0'].delay_time.ravel(),
+            'phase cycles 0': d.sequence['0'].phase_cycle.ravel(),
+            'pulse heights 0': d.sequence['0'].pulse_height.ravel(),
+            'pulse widths 0': d.sequence['0'].pulse_width.ravel(),
+
+            'delay times 1': d.sequence['1'].delay_time.ravel(),
+            'phase cycles 1': d.sequence['1'].phase_cycle.ravel(),
+            'pulse heights 1': d.sequence['1'].pulse_height.ravel(),
+            'pulse widths 1': d.sequence['1'].pulse_width.ravel(),
+        }
+        return tab_specific_data
     

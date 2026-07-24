@@ -55,10 +55,68 @@ class Tab(QWidget):
         print(f'UNIMPLEMENTED PLOT_LOGIC ({self._name})')
         pass
 
-    def get_exported_data(self):
-        '''Returns a dictionary of data to write to a CSV. Keys are columns.'''
+    def get_tab_specific_exported_data(self):
+        '''Returns a dictionary of data specific to the current 
+        tab to write to a CSV. Keys are columns.'''
         print(f'UNIMPLEMENTED GET_EXPORTED_DATA ({self._name})')
         return {}
+
+    def get_exported_data(self):
+        '''Returns a dictionary of data to write to a CSV. Keys are columns.'''
+        d = self.fileselector.data
+        # In case one wants metadata in the header instead of the table, one can add it here.
+        header = {}
+        common_data = {            
+            # GUI STATE
+            # Time Domain Tab / tab_phase_adj.py
+            'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
+            'filter activated': self.data_widgets['tab_phase'].checkbox_filter.isChecked(),
+            'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
+            'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
+            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(), 
+            'windowing activated': self.data_widgets['tab_phase'].checkbox_multfilter.isChecked(),          
+            'windowing type': self.data_widgets['tab_phase'].combobox_multfiltertype.currentText(),
+            'windowing width': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
+            'windowing position': self.data_widgets['tab_phase'].spinbox_multfilterposition.value(),
+            # Frequency Domain Tab / tab_fourier_transform.py
+            'integration width': self.data_widgets['tab_ft'].spinbox_integration_width.value(),
+            'integration center': self.data_widgets['tab_ft'].spinbox_integration_centre.value(),
+
+            # METADATA
+            'filenames': [f.split('/')[-1].split('\\')[-1] for f in self.fileselector.fn],            
+            'nucleus': d.nucleus[0],
+            'sample': d.sample[0],
+            'comments': d.comments[0],
+            'start time': d.start_time.ravel(),
+            'end time': d.end_time.ravel(),
+
+            # MEASUREMENT PARAMETERS
+            'acquisition time': d.params.acquisition_time.ravel(),
+            'actual num acqs': d.params.actual_num_acqs.ravel(),
+            'num acqs': d.params.num_acqs.ravel(),
+            'observed frequency': d.params.obs_freq.ravel(),
+            'post acquisition time': d.params.post_acquisition_time.ravel(),
+            'pre acquisition time': d.params.pre_acquisition_time.ravel(),
+            'ringdown time': d.params.ringdown_time.ravel(),
+
+            # ENVIRONMENTAL DATA
+            'tt': d['environment_tt'].ravel(),
+            'mf': d['environment_mf'].ravel(),
+            'nmr_RP100Node_CH1': d.environment_nmr_RP100Node_CH1.ravel(),
+            'nmr_RP100Node_CH2': d.environment_nmr_RP100Node_CH2.ravel(),
+            'r1': d.environment_r1.ravel(),
+            'tps': d.environment_tps.ravel(),            
+        }
+        
+        tab_specific_data = self.get_tab_specific_exported_data()
+        table = {**common_data, **tab_specific_data}
+
+        return {
+            'header': header,
+            'table': table
+        }
+    
+
 
     def plot(self):
         if(self.fileselector.fn == ''):

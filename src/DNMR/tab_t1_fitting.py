@@ -493,52 +493,14 @@ class TabT1Fit(Tab):
     '''
 
 
-    def get_exported_data(self):
-        # Get the current output frame, which contains the widgets for the selected fitting routine. 
-        # Each widget corresponds to a fit parameter and contains its value and uncertainty.
-        out_frame = self.get_current_oframe()
-        print(f'Oframe: {out_frame}')
-        params_dict = {}
-        if(self.x0 is not None):
-            cnt = 0
-            for wi in out_frame['widgets']:
-                print(f'Exporting {wi.label} with value {self.x0[cnt]} and uncertainty {self.sigmas[cnt]}')
-                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ]
-                params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
-                cnt += 1
-
-        print(self.data_widgets)
-
-        index = self.fileselector.spinbox_index.value()
+    def get_tab_specific_exported_data(self):
         d = self.fileselector.data
-        #print(d)
-        header = {
-            
-            #'users': d.metadata.users[0] #error
-            #'file': self.fileselector.get_current_filename()            
-        }
-        table = {
-            
-            # GUI STATE
-            # Time Domain Tab / tab_phase_adj.py
-            'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
-            'filter activated': self.data_widgets['tab_phase'].checkbox_filter.isChecked(),
-            'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
-            'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
-            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(), 
-            'windowing activated': self.data_widgets['tab_phase'].checkbox_multfilter.isChecked(),          
-            'windowing type': self.data_widgets['tab_phase'].combobox_multfiltertype.currentText(),
-            'windowing width': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
-            'windowing position': self.data_widgets['tab_phase'].spinbox_multfilterposition.value(),
-            # Frequency Domain Tab / tab_fourier_transform.py
-            'integration width': self.data_widgets['tab_ft'].spinbox_integration_width.value(),
-            'integration center': self.data_widgets['tab_ft'].spinbox_integration_center.value(),
-
-            
-            # TAB SPECIFIC DATA
+        tab_specific_data = {            
+            # T1 plot
             'delays': self.data[0],
             'integrals': self.data[1],
             'excluded points': self.excluded_points_indices,
+            
             # T1 fit and results
             'fit type': self.combobox_fittingroutine.currentText(), 
             'fix gamma0': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][0].is_fixed(),          
@@ -554,36 +516,7 @@ class TabT1Fit(Tab):
             'r fit result': float(self.x0[3]) if self.x0 is not None else 'None',
             'r fit uncertainty': float(self.sigmas[3]) if self.sigmas is not None else 'None',
 
-
-
-            # METADATA
-            'nucleus': d.nucleus[0],
-            'sample': d.sample[0],
-            'comments': d.comments[0],
-            'start time': d.start_time.ravel(),
-            'end time': d.end_time.ravel(),
-
-
-            # MEASUREMENT PARAMETERS
-            'acquisition time': d.params.acquisition_time.ravel(),
-            'actual num acqs': d.params.actual_num_acqs.ravel(),
-            'num acqs': d.params.num_acqs.ravel(),
-            'observed frequency': d.params.obs_freq.ravel(),
-            'post acquisition time': d.params.post_acquisition_time.ravel(),
-            'pre acquisition time': d.params.pre_acquisition_time.ravel(),
-            'ringdown time': d.params.ringdown_time.ravel(),
-
-
-            # ENVIRONMENTAL DATA
-            'tt': d['environment_tt'].ravel(),
-            'mf': d['environment_mf'].ravel(),
-            'nmr_RP100Node_CH1': d.environment_nmr_RP100Node_CH1.ravel(),
-            'nmr_RP100Node_CH2': d.environment_nmr_RP100Node_CH2.ravel(),
-            'r1': d.environment_r1.ravel(),
-            'tps': d.environment_tps.ravel(),
-            
-
-            # SEQUENCE DATA (TAB SPECIFIC)
+            # Pulse sequence (tab specific since other tabs can have different pulse sequences)
             'delay times 0': d.sequence['0'].delay_time.ravel(),
             'phase cycles 0': d.sequence['0'].phase_cycle.ravel(),
             'pulse heights 0': d.sequence['0'].pulse_height.ravel(),
@@ -597,14 +530,7 @@ class TabT1Fit(Tab):
             'delay times 2': d.sequence['2'].delay_time.ravel(),
             'phase cycles 2': d.sequence['2'].phase_cycle.ravel(),
             'pulse heights 2': d.sequence['2'].pulse_height.ravel(),
-            'pulse widths 2': d.sequence['2'].pulse_width.ravel()
-
-            
+            'pulse widths 2': d.sequence['2'].pulse_width.ravel()  
         }
-        #pd.update(params_dict)
-        #return table
-        return {
-            'header': header,
-            'table': table
-        } 
+        return tab_specific_data
          

@@ -2,6 +2,7 @@
 import sys
 import pathlib
 import traceback
+import os
 
 import numpy as np
 import scipy as sp
@@ -120,42 +121,27 @@ class MainWindow(QWidget):
         layout.addLayout(layouth)
         self.setLayout(layout)
 
-    '''
+    
     def export_selected(self):
         """ This function is called when the export button is clicked.
         It will export the data from the current tab to a CSV file. """
-        # Get the filename and location from the file dialog. 
-        # This is a standard Qt widget that allows the user to select a file and location to save the data.
-        # The ending .csv has to be added manually?
-        #fn = self.filedialog_export.getSaveFileName()[0]
-        # Get the data from the current tab. This is done by calling the get_exported_data function of the current tab.
-        saved_dict = self.tabwidget_tabs.currentWidget().get_exported_data()
-        # Print the data to the console. This is useful for debugging.
-        print(saved_dict)
-        # Convert the data to a pandas dataframe.
-        df = pd.DataFrame(dict([ (k, pd.Series(v)) for k,v in saved_dict.items() ]))
-        # Save the dataframe to a CSV file. 
-        #df.to_csv(path_or_buf=fn)
-        print('Exporting dataframe:')
-        print(df)
-    '''
+        # Get the filename and location from the file dialog.
+        fn = self.filedialog_export.getSaveFileName()[0] + '.csv'
 
-    def export_selected(self):
-        #fn = self.filedialog_export.getSaveFileName()[0]
-        fn = 'results/A'
-        #os.makedirs('results', exist_ok=True)
-
-        if not fn:
+        if not fn: 
             return
 
         exported = self.tabwidget_tabs.currentWidget().get_exported_data()
+        # The exported data is a dictionary with two keys: 'header' and 'table'.
         header = exported.get('header', {})
         table = exported.get('table', {})
 
         df = pd.DataFrame(dict((k, pd.Series(v)) for k, v in table.items()))
-        # 
+        
         with open(fn, 'w', encoding='utf-8') as f:
             for key, value in header.items():
+                # The header is printed as comments in the CSV file, so that it can be read by 
+                # humans, but ignored by pandas when reading the file back in.
                 f.write(f"# {key}: {value}\n")
             f.write("\n")
             df.to_csv(f, index=False)
