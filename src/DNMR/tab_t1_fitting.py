@@ -2,6 +2,8 @@
 import numpy as np
 import scipy as sp
 import traceback
+import math
+
 
 import matplotlib as mpl
 from matplotlib.figure import Figure
@@ -47,12 +49,18 @@ class TabT1Fit(Tab):
         self.checkbox_normalize = QCheckBox('Normalize?')
         self.checkbox_normalize.setCheckState(Qt.CheckState(2)) # checked.
 
+        # Make a checkbox to use parentheses error notation instead of +/- error notation. 
+        # This will display the error in parentheses.
+        self.checkbox_errornotation = QCheckBox('Use parentheses error notation?')
+        self.checkbox_errornotation.setCheckState(Qt.CheckState(0)) # unchecked.
+
         # Make a layout to hold the combobox, pushbutton, and checkbox. 
         # This will be added to the main layout of the tab.
         l = QHBoxLayout()
         lv = QVBoxLayout()
         lv.addWidget(self.combobox_fittingroutine)
         lv.addWidget(self.checkbox_normalize)
+        lv.addWidget(self.checkbox_errornotation)
         l.addLayout(lv)
         l.addWidget(self.pushbutton_fit)
 
@@ -195,32 +203,104 @@ class TabT1Fit(Tab):
         plt_pts = self.ax.errorbar(plotted_del_times, plotted_integrations, label=r'$\int \mathrm{Re}\{\mathrm{FT}\}\,df$', linestyle='', marker='o', yerr=plotted_errs)
         self.ax.scatter(excluded_del_times, excluded_integrations, color=(plt_pts[-1][-1]).get_color(), linestyle='', marker='x')
         
-        post_aq_max = np.max(self.fileselector.data.params.post_acquisition_time * 1e3) # this is in ms. Our axes in us
-        self.ax.axvline(post_aq_max, linestyle='--', color='k')
+        post_aq_max = np.max(self.fileselector.data.params.post_acquisition_time) # this is in ms. Our axes in us
+        post_acqusition_delay = self.fileselector.data.params.post_acquisition_time.ravel()
+        self.ax.axvline(post_aq_max * 1e3, linestyle='--', color='k', label=f'p.a.d.={post_aq_max} ms')
 
         self.data = (del_times, integrations, uncertainties)
 
-        if(self.plot_data[0].shape[0] > 0):
+        if self.plot_data[0].shape[0] > 0:
+
+            # Gather parameters and put them in the legend.
+            # NOTE: This is made in a way which is stable and easily adjustible under the 
+            # given circumstances. If you add a fitting routine with different parameters, 
+            # you will have to adjust this manually.
             routine = self.combobox_fittingroutine.currentText()
-            params_list = routine + '\n'
 
-            out_frame = self.get_current_oframe()
+            gamma_0 = float(self.x0[0])
+            s       = float(self.x0[1])
+            T1      = float(self.x0[2])
+            r       = float(self.x0[3])
 
-            for wi in out_frame['widgets']:
-                params_list += f'{wi.get_full_display()}\n'
+            d_gamma_0 = float(self.sigmas[0])
+            d_s       = float(self.sigmas[1])
+            d_T1      = float(self.sigmas[2])
+            d_r       = float(self.sigmas[3])
 
-                if(wi.xplot):
-                    self.ax.axvline(wi.get_value(), linestyle='--')
-                if(wi.yplot):
-                    self.ax.axhline(wi.get_value(), linestyle='--')
+            legend_label = (
+                f'{routine}: '+'\n'
+                f'γ₀={self.format_value_with_error(
+                    value = gamma_0,
+                    error = d_gamma_0, 
+                    decimals = 2, 
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )}'+'\n'
+                f's={self.format_value_with_error(
+                    value = s,
+                    error = d_s, 
+                    decimals = 2, 
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )}'+'\n'
+                f'r={self.format_value_with_error(
+                    value = r,
+                    error = d_r, 
+                    decimals=2, 
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )}'+'\n'
+            )
 
-            params_list = params_list[:-1]
+                
+            # Plot a shaded error region and a vertical line for the T1 fit result
+            self.ax.axvspan(
+                T1 - d_T1,
+                T1 + d_T1,
+                color='red',
+                alpha=0.2
+            )
+            self.ax.axvline(
+                T1, 
+                linestyle = '--', 
+                color = 'red', 
+                label = f'$T_1$={self.format_value_with_error(
+                    value = T1,
+                    error = d_T1,
+                    decimals = 2,
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )} μs'
+            )
 
+            # Plot the datapoints and fit
             self.ax.plot(
                 self.plot_data[0],
                 self.plot_data[1],
-                label=params_list
+                label=legend_label
             )
+
+            # This old version is more agnostic with regards to the number of fitting parameters
+            # but is not as explicit and uses string formatting.
+            # routine = self.combobox_fittingroutine.currentText()
+            # params_list = routine + '\n'
+            # print(routine)
+            # out_frame = self.get_current_oframe()
+
+            # for wi in out_frame['widgets']:
+            #     params_list += f'{wi.get_full_display()}\n'
+
+            #     if(wi.xplot):
+            #         self.ax.axvline(wi.get_value(), linestyle='--', label=params_list[-3])
+            #     if(wi.yplot):
+            #         self.ax.axhline(wi.get_value(), linestyle='--', label=params_list[-3])
+
+            # #params_list = params_list[:-1]
+            # print(params_list)
+            # params_list = params_list[:-3] + params_list[-2]
+            # print(params_list)
+
+            # self.ax.plot(
+            #     self.plot_data[0],
+            #     self.plot_data[1],
+            #     label=params_list
+            # )
         
           
     def update_fit_type(self):
@@ -397,7 +477,9 @@ class TabT1Fit(Tab):
             
         def cost_func(args, x, y, yerr):
             return np.sum(np.square((fit_func(args, x) - y)/np.maximum(yerr, 0.01))) # more points is more fits
-            
+
+        # Get the bounds for the fit parameters from the output frame widgets. 
+        # If a widget is fixed, then the bounds are set to the fixed value.    
         for i in range(len(out_frame['widgets'])):
             widget = out_frame['widgets'][i]
             if(widget.is_fixed()):
@@ -408,6 +490,7 @@ class TabT1Fit(Tab):
         included_xvals = []
         included_yvals = []
         included_errs = []
+        
         for i in range(len(self.data[0])):
             if not(i in self.excluded_points_indices):
                 included_xvals += [self.data[0][i]]
@@ -455,43 +538,6 @@ class TabT1Fit(Tab):
             traceback.print_exc()
         self.update()
 
-        
-
-        
-    '''    
-    def get_exported_data(self):
-        # Get the current output frame, which contains the widgets for the selected fitting routine. 
-        # Each widget corresponds to a fit parameter and contains its value and uncertainty.
-        out_frame = self.get_current_oframe()
-        print(f'Oframe: {out_frame}')
-        params_dict = {}
-        if(self.x0 is not None):
-            cnt = 0
-            for wi in out_frame['widgets']:
-                print(f'Exporting {wi.label} with value {self.x0[cnt]} and uncertainty {self.sigmas[cnt]}')
-                params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ]
-                params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
-                cnt += 1
-        
-        index = self.fileselector.spinbox_index.value()
-        d = self.fileselector.data
-        pd = {
-                 #'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
-                 #'fft': self.data_widgets['tab_ft'].data[1][index],
-                 'delays': self.data[0],
-                 'integrals': self.data[1],
-                 'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
-                 'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
-                 'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
-                 'excluded points': self.excluded_points_indices,
-                 'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(),
-                 'fit type': self.combobox_fittingroutine.currentText(),
-                 #'tt': d['environment_tt']
-                }
-        #pd.update(params_dict)
-        return pd
-    '''
-
 
     def get_tab_specific_exported_data(self):
         d = self.fileselector.data
@@ -533,4 +579,5 @@ class TabT1Fit(Tab):
             'pulse widths 2': d.sequence['2'].pulse_width.ravel()  
         }
         return tab_specific_data
-         
+    
+    

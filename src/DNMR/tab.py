@@ -8,6 +8,9 @@ from PyQt6.QtWidgets import *
 
 import traceback
 import pandas as pd
+import numpy as np
+import math
+
 
 class Tab(QWidget):
     """ This is the base class for all tabs in the application. Since each tab has one plot, 
@@ -125,6 +128,8 @@ class Tab(QWidget):
         old_x_lim = self.ax.get_xlim()
         old_y_lim = self.ax.get_ylim()
 
+        
+
         # If the hold plots checkbox is not checked, clear the axes before plotting.
         if not(self.fileselector.checkbox_holdplots.isChecked()):
             self.ax.clear()
@@ -136,17 +141,9 @@ class Tab(QWidget):
             print(f'Failure in plot_logic\n{"-"*100}')
             traceback.print_exc()
             print("-"*100)
-            
-        # Thanks, azelcer 
-        # (https://stackoverflow.com/questions/70336467/keep-zoom-and-ability-to-zoom-out-to-current-data-extent-in-matplotlib-pyplot)
-        self.ax.relim()
-        self.ax.autoscale()
-        self.toolbar.update() # Clear the axes stack
-        self.toolbar.push_current()  # save the current status as home
 
-        self.ax.set_xlim(old_x_lim)  # and restore zoom
-        self.ax.set_ylim(old_y_lim)
-        
+
+
         # reserve right margin for legend
         self.ax.set_position([0.12, 0.12, 0.55, 0.80])
         
@@ -163,4 +160,84 @@ class Tab(QWidget):
                 framealpha=0.9,
             )
 
+       
+        # Thanks, azelcer 
+        # (https://stackoverflow.com/questions/70336467/keep-zoom-and-ability-to-zoom-out-to-current-data-extent-in-matplotlib-pyplot)
+        self.ax.relim()
+        self.ax.autoscale()
+        self.toolbar.update() # Clear the axes stack
+        self.toolbar.push_current()  # save the current status as home
+
+        self.ax.set_xlim(old_x_lim)  # and restore zoom
+        self.ax.set_ylim(old_y_lim)
+        
+
         self.canvas.draw()
+
+
+    
+    def pm_error_to_parentheses_error(self, x, xerr, decimals=2):
+        '''Takes a value and its error.
+        Returns an f-string with scientific parentheses error notation of the value.
+        This can be used for displaying the fitted values in the legends.'''
+        
+        if not x==0:
+            magnitude = math.floor(math.log10(abs(x)))
+        else:
+            magnitude = 0
+            decimals = 0
+
+        x_new = np.round(x/10**magnitude, decimals)
+        parentheses = int(np.round(xerr/10**(magnitude-decimals), 0))
+        
+        tolerance = 0.0001
+
+        while decimals > 0:
+            second_to_last_decimal = 10 ** (1 - decimals)
+            remainder = x_new % second_to_last_decimal
+                
+            remainder_is_zero = (
+                abs(remainder) < tolerance
+                or abs(remainder - second_to_last_decimal) < tolerance
+            )
+        
+            if remainder_is_zero and parentheses % 10 == 0:
+                decimals -= 1
+                parentheses = int(parentheses / 10)
+            else:
+                break
+
+        return f'{x_new:.{decimals}f}({parentheses})e{magnitude}'
+
+
+    def pm_error_to_pm_error_common_power(self, x, xerr, decimals=2):
+        '''Takes a value and its error.
+        Returns an f-string with +/- error notation but with value and error 
+        in a single bracket and one common scaling exponential afterwards.'''
+        
+        if xerr < 0:
+            raise ValueError("xerr must be non-negative")
+
+        scale_reference = abs(x) if x != 0 else abs(xerr)
+
+        if scale_reference == 0:
+            exponent = 0
+        else:
+            exponent = math.floor(math.log10(scale_reference))
+
+        scale = 10 ** exponent
+        x_scaled = x / scale
+        xerr_scaled = xerr / scale
+
+        return (
+            f"({x_scaled:.{decimals}f} ± "
+            f"{xerr_scaled:.{decimals}f}) e{exponent}"
+        )
+
+    def format_value_with_error(self, value, error, decimals=2, use_parentheses=False):
+        '''Formats a value and its error into a string representation.
+        If use_parentheses is True, it uses parentheses notation; otherwise, it uses ± notation.'''
+        if use_parentheses:
+            return self.pm_error_to_parentheses_error(value, error, decimals)
+        else:
+            return self.pm_error_to_pm_error_common_power(value, error, decimals)

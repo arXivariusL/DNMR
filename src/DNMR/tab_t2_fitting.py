@@ -49,10 +49,16 @@ class TabT2Fit(Tab):
         self.checkbox_normalize = QCheckBox('Normalize?')
         self.checkbox_normalize.setCheckState(Qt.CheckState(2)) # checked.
 
+        # Make a checkbox to use parentheses error notation instead of +/- error notation. 
+        # This will display the error in parentheses.
+        self.checkbox_errornotation = QCheckBox('Use parentheses error notation?')
+        self.checkbox_errornotation.setCheckState(Qt.CheckState(0)) # unchecked.
+
         l = QHBoxLayout()
         lv = QVBoxLayout()
         lv.addWidget(self.combobox_fittingroutine)
         lv.addWidget(self.checkbox_normalize)
+        lv.addWidget(self.checkbox_errornotation)
         l.addLayout(lv)
         l.addWidget(self.pushbutton_fit)
 
@@ -171,32 +177,95 @@ class TabT2Fit(Tab):
         plt_pts = self.ax.errorbar(plotted_del_times, plotted_integrations, label='\u222b FT', linestyle='', marker='o', yerr=plotted_errs)
         self.ax.scatter(excluded_del_times, excluded_integrations, color=(plt_pts[-1][-1]).get_color(), linestyle='', marker='x')
         
-       #post_aq_max = np.max(self.fileselector.data.params.post_acquisition_time * 1e3) # this is in ms. Our axes in us
-       #self.ax.axvline(post_aq_max, linestyle='--', color='k')
+       
 
         self.data = (del_times, integrations, uncertainties)
 
-        if(self.plot_data[0].shape[0] > 0):
-            formula_text = r'$S(t)=A\exp[-(t/T_2)^r]$'
-            params_list = formula_text + '\n'
+        if self.plot_data[0].shape[0] > 0:
+        
+            # Gather parameters and put them in the legend.
+            # NOTE: This is made in a way which is stable and easily adjustible under the 
+            # given circumstances. If you add a fitting routine with different parameters, 
+            # you will have to adjust this manually.
+            routine = self.combobox_fittingroutine.currentText()
 
-            out_frame = self.get_current_oframe()
+            A  = float(self.x0[0])
+            T2 = float(self.x0[1])
+            r  = float(self.x0[2])
 
-            for wi in out_frame['widgets']:
-                params_list += f'{wi.get_full_display()}\n'
+            d_A  = float(self.sigmas[0])
+            d_T2 = float(self.sigmas[1])
+            d_r  = float(self.sigmas[2])
 
-                if(wi.xplot):
-                    self.ax.axvline(wi.get_value(), linestyle='--')
-                if(wi.yplot):
-                    self.ax.axhline(wi.get_value(), linestyle='--')
+            legend_label = (
+                f'{routine}: '+'\n'
+                f'A={self.format_value_with_error(
+                    value = A,
+                    error = d_A,
+                    decimals = 2,
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )} '+'\n'
+                f'r={self.format_value_with_error(
+                    value = r,
+                    error = d_r,
+                    decimals = 2,
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )} '+'\n'
+            )
 
-            params_list = params_list[:-1]
 
+            # Plot shaded error region and a vertical line for the T2 fit result
+            self.ax.axvspan(
+                T2 - d_T2,
+                T2 + d_T2,
+                color='red',
+                alpha=0.2
+            )
+            self.ax.axvline(
+                T2, 
+                linestyle='--', 
+                color = 'red', 
+                label = f'$T_2$={self.format_value_with_error(
+                    value = T2,
+                    error = d_T2,
+                    decimals = 2,
+                    use_parentheses = self.checkbox_errornotation.isChecked()
+                )} μs'
+            )
+
+            # Plot the datapoints and fit
             self.ax.plot(
                 self.plot_data[0],
                 self.plot_data[1],
-                label=params_list
+                label=legend_label
             )
+
+
+            # This old version is more agnostic with regards to the number of fitting parameters
+            # but is not as explicit and uses string formatting.
+
+            # routine = self.combobox_fittingroutine.currentText()
+            # formula_text = r'$S(t)=A\exp[-(t/T_2)^r]$'
+            # params_list = formula_text + '\n'
+
+            # out_frame = self.get_current_oframe()
+
+            # for wi in out_frame['widgets']:
+            #     params_list += f'{wi.get_full_display()}\n'
+
+            #     if(wi.xplot):
+            #         self.ax.axvline(wi.get_value(), linestyle='--')
+            #     if(wi.yplot):
+            #         self.ax.axhline(wi.get_value(), linestyle='--')
+
+            # params_list = params_list[:-1]
+
+            # self.ax.plot(
+            #     self.plot_data[0],
+            #     self.plot_data[1],
+            #     label=params_list
+            # )
+
         xmax = np.max(del_times)
         self.ax.set_xlim(0, xmax * 1.05)
         
@@ -323,39 +392,6 @@ class TabT2Fit(Tab):
             traceback.print_exc()
         self.update()
         
-    # def get_exported_data(self):
-    #     """ This function is called when the export button is clicked. It will export the data from the current tab to a CSV file.
-    #     It will return a dictionary with the data to be exported. The keys are the column names and the values are the data. """
-    #     # Get the current output frame based on the selected fitting routine.
-    #     out_frame = self.get_current_oframe() 
-    #     # Create a dictionary to hold the fit parameters and their uncertainties. 
-    #     # The keys are the parameter names and the values are lists containing the parameter value and its uncertainty.
-    #     params_dict = {} 
-    #     # If the fit has been performed and the parameters have been determined, add them to the dictionary.
-    #     if(self.x0 is not None):
-    #         # The cnt counter is used to index into the x0 and sigmas arrays, which contain the fit parameters and their uncertainties.
-    #         cnt = 0
-    #         # Iterate over the widgets in the output frame.
-    #         for wi in out_frame['widgets']:
-    #             # Add the parameter value to the dictionary.
-    #             params_dict[wi.label + f'[{wi.units}]'] = [ str(self.x0[cnt]) ] 
-    #             # Add the parameter uncertainty to the dictionary.
-    #             params_dict[wi.label + ' error' + f'[{wi.units}]'] = [ str(self.sigmas[cnt]) ]
-    #             cnt += 1 
-    #     # Get the selected index from the file selector.
-    #     index = self.fileselector.spinbox_index.value() 
-    #     # Create a dictionary to hold the data to be exported. The keys are the column names and the values are the data.
-    #     pd = {
-    #              'frequencies (MHz)': self.data_widgets['tab_ft'].data[0],
-    #              'fft': self.data_widgets['tab_ft'].data[1][index],
-    #              'delays': self.data[0],
-    #              'integrals': self.data[1],
-    #             }
-    #     # Add the pd dictionary to the params_dict dictionary.
-    #     pd.update(params_dict) 
-    #     return pd
-
-
     def get_tab_specific_exported_data(self):
         '''Gets the data specific to this tab for export. This is called 
         by the main window when the export button is clicked.'''
