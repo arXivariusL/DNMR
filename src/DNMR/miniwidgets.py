@@ -84,7 +84,7 @@ class PhaseAdjustmentWidget(QWidget):
         self.slider_phase.setOrientation(Qt.Orientation.Horizontal)
         self.label_phase = QLabel('Phase: 0\u00b0')
 
-        layout = QVBoxLayout()
+        layout = QHBoxLayout()
         layout.addWidget(self.label_phase)
         layout.addWidget(self.slider_phase)
         self.setLayout(layout)

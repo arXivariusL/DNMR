@@ -23,6 +23,13 @@ class TabPhaseAdjustment(Tab):
         self.phase_adjustment = PhaseAdjustmentWidget(callback=self.update_phase)
         self.data_widgets['phase_adjustment'] = self.phase_adjustment
         self.canvas.mpl_connect('button_press_event', self.process_button)
+
+        self.label_peak_position = QLabel('Peak Position (µs):')
+        self.spinbox_peak_position = QDoubleSpinBox()
+        self.spinbox_peak_position.setSingleStep(0.1)
+        self.spinbox_peak_position.setRange(0, 1000)
+        self.spinbox_peak_position.setValue(10)
+        self.spinbox_peak_position.valueChanged.connect(self.update)
         
         self.spinbox_filtersize = QSpinBox()
         self.spinbox_filtersize.setRange(0, 100)
@@ -63,7 +70,13 @@ class TabPhaseAdjustment(Tab):
 
         l2 = QVBoxLayout()
         l0 = QHBoxLayout()
-        l0.addWidget(self.phase_adjustment)
+        l4 = QVBoxLayout()
+        l5 = QHBoxLayout()
+        l5.addWidget(self.label_peak_position)
+        l5.addWidget(self.spinbox_peak_position)
+        l4.addLayout(l5)
+        l4.addWidget(self.phase_adjustment)
+        l0.addLayout(l4)
         l3 = QVBoxLayout()
         l3.addWidget(self.pushbutton_locatemax)
         l3.addWidget(self.pushbutton_phaseadjust)
@@ -84,7 +97,7 @@ class TabPhaseAdjustment(Tab):
         l1.setColumnStretch(3, 3)
         
         l2.addLayout(l0)
-        l2.addLayout(l1)
+        l4.addLayout(l1)
         return l2
 
     def locate_max(self):
@@ -122,6 +135,8 @@ class TabPhaseAdjustment(Tab):
         self.fileselector.data['phases'] = [ new_phase_degrees for i in range(len(self.fileselector.data['phases'])) ]
         self.get_global_peaklocs()
         self.fileselector.data['peak_locations'] = np.ones_like(self.get_global_peaklocs()) * peak_t
+        self.spinbox_peak_position.setValue(np.round(self.get_global_peaklocs()[index],1))
+
         
         self.update()
 
@@ -160,6 +175,7 @@ class TabPhaseAdjustment(Tab):
             if(event.button == 1):
                 if not(event.xdata is None):
                     self.fileselector.data['peak_locations'] = np.ones_like(self.get_global_peaklocs()) * event.xdata
+                    self.spinbox_peak_position.setValue(np.round(event.xdata,1))
                 self.update()
             elif(event.button == 3): # why set two or three indices, when you could set **just one**?
                 index = self.fileselector.spinbox_index.value()
@@ -174,7 +190,8 @@ class TabPhaseAdjustment(Tab):
         times = self.fileselector.data.times
         times = times[:,:reals.shape[1]]
         
-        peak_loc = self.get_global_peaklocs()[index]
+        #peak_loc = self.get_global_peaklocs()[index]
+        peak_loc = self.spinbox_peak_position.value()
         
         ps = self.get_global_phaseset()
         self.phase_adjustment.slider_phase.setValue(int(ps[index]))
