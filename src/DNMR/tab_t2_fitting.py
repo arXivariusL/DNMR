@@ -400,8 +400,8 @@ class TabT2Fit(Tab):
             'echo time 2tau [us]': self.data[0],
             'integrals': self.data[1],
             'normalized': self.checkbox_normalize.isChecked(),
-            'excluded points': self.excluded_points_indices,
-            
+            'point excluded': [i in self.excluded_points_indices for i in range(len(self.data[0]))],
+
             # T2 fit and results
             'fit type': self.combobox_fittingroutine.currentText(), 
             'fix A': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][0].is_fixed(),          

@@ -545,7 +545,7 @@ class TabT1Fit(Tab):
             'delays [us]': self.data[0],
             'integrals': self.data[1],
             'normalized': self.checkbox_normalize.isChecked(),
-            'excluded points': self.excluded_points_indices,
+            'point excluded': [i in self.excluded_points_indices for i in range(len(self.data[0]))],
             
             # T1 fit and results
             'fit type': self.combobox_fittingroutine.currentText(), 
