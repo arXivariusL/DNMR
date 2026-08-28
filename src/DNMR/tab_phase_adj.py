@@ -58,6 +58,12 @@ class TabPhaseAdjustment(Tab):
         self.combobox_multfiltertype = QComboBox()
         self.combobox_multfiltertype.addItems(['Half-Gaussian','Sinc','Gaussian','Box'])
         self.combobox_multfiltertype.currentTextChanged.connect(self.update)
+
+        self.checkbox_average_real = QCheckBox('Plot avg. R?')
+        self.checkbox_average_real.checkStateChanged.connect(self.update)
+
+        self.checkbox_average_imag = QCheckBox('Plot avg. I?')
+        self.checkbox_average_imag.checkStateChanged.connect(self.update)
         
         self.pushbutton_phaseadjust = QPushButton('Autophase')
         self.pushbutton_phaseadjust.clicked.connect(self.autophase)
@@ -74,6 +80,8 @@ class TabPhaseAdjustment(Tab):
         l5 = QHBoxLayout()
         l5.addWidget(self.label_peak_position)
         l5.addWidget(self.spinbox_peak_position)
+        l5.addWidget(self.checkbox_average_real)
+        l5.addWidget(self.checkbox_average_imag)
         l4.addLayout(l5)
         l4.addWidget(self.phase_adjustment)
         l0.addLayout(l4)
@@ -246,8 +254,10 @@ class TabPhaseAdjustment(Tab):
         self.ax.plot(times[index][:reals[index].shape[0]], reals[index], 'r', alpha=0.6, label='R')
         self.ax.plot(times[index][:imags[index].shape[0]], imags[index], 'b', alpha=0.6, label='I')
 
-        self.ax.plot(times[index][:reals[index].shape[0]], np.average(reals, axis=0), 'r--', alpha=0.3, label='Avg. R')
-        self.ax.plot(times[index][:imags[index].shape[0]], np.average(imags, axis=0), 'b--', alpha=0.3, label='Avg. I')
+        if (self.checkbox_average_real.isChecked()):
+            self.ax.plot(times[index][:reals[index].shape[0]], np.average(reals, axis=0), 'r--', alpha=0.3, label='Avg. R')
+        if (self.checkbox_average_imag.isChecked()):
+            self.ax.plot(times[index][:imags[index].shape[0]], np.average(imags, axis=0), 'b--', alpha=0.3, label='Avg. I')
         self.ax.set_xlabel('time (us)')
         self.fig.subplots_adjust(bottom=0.18)
         if('actual_num_acqs' in self.fileselector.data.params.keys()):
