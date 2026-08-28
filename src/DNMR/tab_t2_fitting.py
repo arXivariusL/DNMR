@@ -397,8 +397,9 @@ class TabT2Fit(Tab):
         by the main window when the export button is clicked.'''
         tab_specific_data = {            
             # T2 plot
-            'delays': self.data[0],
+            'echo time 2tau [us]': self.data[0],
             'integrals': self.data[1],
+            'normalized': self.checkbox_normalize.isChecked(),
             'excluded points': self.excluded_points_indices,
             
             # T2 fit and results

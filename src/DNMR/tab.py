@@ -72,19 +72,18 @@ class Tab(QWidget):
         common_data = {            
             # GUI STATE
             # Time Domain Tab / tab_phase_adj.py
-            'phase adjustment': self.data_widgets['tab_phase'].get_global_phaseset(),
+            'phase adjustment [degrees]': self.data_widgets['tab_phase'].get_global_phaseset(),
             'filter activated': self.data_widgets['tab_phase'].checkbox_filter.isChecked(),
             'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
             'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
-            'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(), 
-            # 'left shift': self.data_widgets['tab_phase'].spinbox_peak_position.value(),
+            'left shift [us]': self.data_widgets['tab_phase'].spinbox_peak_position.value(),
             'windowing activated': self.data_widgets['tab_phase'].checkbox_multfilter.isChecked(),          
             'windowing type': self.data_widgets['tab_phase'].combobox_multfiltertype.currentText(),
-            'windowing width': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
-            'windowing position': self.data_widgets['tab_phase'].spinbox_multfilterposition.value(),
+            'windowing width [us]': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
+            'windowing position [us]': self.data_widgets['tab_phase'].spinbox_multfilterposition.value(),
             # Frequency Domain Tab / tab_fourier_transform.py
-            'integration width': self.data_widgets['tab_ft'].spinbox_integration_width.value(),
-            'integration center': self.data_widgets['tab_ft'].spinbox_integration_centre.value(),
+            'integration width [MHz]': self.data_widgets['tab_ft'].spinbox_integration_width.value(),
+            'integration center [MHz]': self.data_widgets['tab_ft'].spinbox_integration_centre.value(),
 
             # METADATA
             'filenames': [f.split('/')[-1].split('\\')[-1] for f in self.fileselector.fn],            
@@ -95,22 +94,22 @@ class Tab(QWidget):
             'end time': d.end_time.ravel(),
 
             # MEASUREMENT PARAMETERS
-            'acquisition time': d.params.acquisition_time.ravel(),
+            'acquisition time [us]': d.params.acquisition_time.ravel(),
             'actual num acqs': d.params.actual_num_acqs.ravel(),
             'num acqs': d.params.num_acqs.ravel(),
-            'observed frequency': d.params.obs_freq.ravel(),
-            'post acquisition time': d.params.post_acquisition_time.ravel(),
-            'pre acquisition time': d.params.pre_acquisition_time.ravel(),
-            'ringdown time': d.params.ringdown_time.ravel(),
+            'observed frequency [MHz]': d.params.obs_freq.ravel(),
+            'post acquisition time [ms]': d.params.post_acquisition_time.ravel(),
+            'pre acquisition time [us]': d.params.pre_acquisition_time.ravel(),
+            'ringdown time [us]': d.params.ringdown_time.ravel(),
 
             # ENVIRONMENTAL DATA (robust against missing devices)
-            'tt': d.get('environment_tt', []).ravel() if hasattr(d.get('environment_tt', []), 'ravel') else [],
-            'mf': d.get('environment_mf', []).ravel() if hasattr(d.get('environment_mf', []), 'ravel') else [],
-            'nmr_TSSOP16': d.get('environment_nmr_TSSOP16', []).ravel() if hasattr(d.get('environment_nmr_TSSOP16', []), 'ravel') else [],
-            'nmr_RP100Node_CH1': d.get('environment_nmr_RP100Node_CH1', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH1', []), 'ravel') else [],
-            'nmr_RP100Node_CH2': d.get('environment_nmr_RP100Node_CH2', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH2', []), 'ravel') else [],
-            'r1': d.get('environment_r1', []).ravel() if hasattr(d.get('environment_r1', []), 'ravel') else [],
-            'tps': d.get('environment_tps', []).ravel() if hasattr(d.get('environment_tps', []), 'ravel') else []
+            'tt [K]': d.get('environment_tt', []).ravel() if hasattr(d.get('environment_tt', []), 'ravel') else [],
+            'mf [T]': d.get('environment_mf', []).ravel() if hasattr(d.get('environment_mf', []), 'ravel') else [],
+            'nmr_TSSOP16 [pF]': d.get('environment_nmr_TSSOP16', []).ravel() if hasattr(d.get('environment_nmr_TSSOP16', []), 'ravel') else [],
+            'nmr_RP100Node_CH1 [V]': d.get('environment_nmr_RP100Node_CH1', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH1', []), 'ravel') else [],
+            'nmr_RP100Node_CH2 [V]': d.get('environment_nmr_RP100Node_CH2', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH2', []), 'ravel') else [],
+            'r1 [Ohm]': d.get('environment_r1', []).ravel() if hasattr(d.get('environment_r1', []), 'ravel') else [],
+            'tps [K]': d.get('environment_tps', []).ravel() if hasattr(d.get('environment_tps', []), 'ravel') else []
         }
 
         # PULSE SEQUENCE: iterate over all pulses, no matter how many there are

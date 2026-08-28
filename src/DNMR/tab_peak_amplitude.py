@@ -141,7 +141,7 @@ class TabPeakAmplitude(Tab):
         by the main window when the export button is clicked.'''
         index = self.fileselector.spinbox_index.value()
         tab_specific_data = { 
-            'frequencies (MHz)': self.data_widgets['tab_ft'].data[0][index],
+            'frequencies [MHz]': self.data_widgets['tab_ft'].data[0][index],
             'fft': self.data_widgets['tab_ft'].data[1][index],
             self.combobox_labelling.currentText(): self.data[0],
             'integrals': self.data[1],

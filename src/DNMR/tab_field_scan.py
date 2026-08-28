@@ -80,9 +80,9 @@ class TabFieldScan(Tab):
         index = self.fileselector.spinbox_index.value()
         tab_specific_data = { 
             'index': index,
-            'times': self.data_widgets['tab_phase'].data[0][index],
+            'times [us]': self.data_widgets['tab_phase'].data[0][index],
             'complexes': self.data_widgets['tab_phase'].data[1][index],
-            'fields': self.data[0],
+            'fields [T]': self.data[0],
             'magnitudes': self.data[1]
         }
         return tab_specific_data

@@ -540,11 +540,11 @@ class TabT1Fit(Tab):
 
 
     def get_tab_specific_exported_data(self):
-        d = self.fileselector.data
         tab_specific_data = {            
             # T1 plot
-            'delays': self.data[0],
+            'delays [us]': self.data[0],
             'integrals': self.data[1],
+            'normalized': self.checkbox_normalize.isChecked(),
             'excluded points': self.excluded_points_indices,
             
             # T1 fit and results

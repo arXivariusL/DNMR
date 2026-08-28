@@ -141,9 +141,9 @@ class TabFourierTransform(Tab):
         index = self.fileselector.spinbox_index.value()
         tab_specific_data = {
             'index': index,
-            'times': self.data_widgets['tab_phase'].data[0][index],
+            'times [us]': self.data_widgets['tab_phase'].data[0][index],
             'complexes': self.data_widgets['tab_phase'].data[1][index],
-            'frequencies (MHz)': self.data[0],
+            'frequencies [MHz]': self.data[0],
             'fft': self.data[1][index],
         }
         return tab_specific_data

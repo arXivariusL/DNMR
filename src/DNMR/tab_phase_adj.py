@@ -24,7 +24,7 @@ class TabPhaseAdjustment(Tab):
         self.data_widgets['phase_adjustment'] = self.phase_adjustment
         self.canvas.mpl_connect('button_press_event', self.process_button)
 
-        self.label_peak_position = QLabel('Peak Position (µs):')
+        self.label_peak_position = QLabel('Left shift [µs]:')
         self.spinbox_peak_position = QDoubleSpinBox()
         self.spinbox_peak_position.setSingleStep(0.1)
         self.spinbox_peak_position.setRange(0, 1000)
@@ -266,7 +266,7 @@ class TabPhaseAdjustment(Tab):
             index = self.fileselector.spinbox_index.value()
             tab_specific_data = {
                 'index': index,
-                'times': self.data[0][index],
+                'times [us]': self.data[0][index],
                 'complexes': self.data[1][index]
             }
             return tab_specific_data
