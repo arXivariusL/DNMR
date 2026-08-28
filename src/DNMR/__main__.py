@@ -176,7 +176,7 @@ def start_app():
     # Create, name and resize the main window object. This is the main window of the application, 
     # which contains all the tabs and widgets.
     main = MainWindow()
-    main.setWindowTitle('DNMR-DEV')
+    main.setWindowTitle('DNMR')
     main.resize(640, 960)
     main.show()
 

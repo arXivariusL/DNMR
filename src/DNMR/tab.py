@@ -102,13 +102,15 @@ class Tab(QWidget):
             'pre acquisition time': d.params.pre_acquisition_time.ravel(),
             'ringdown time': d.params.ringdown_time.ravel(),
 
-            # ENVIRONMENTAL DATA
-            'tt': d['environment_tt'].ravel(),
-            'mf': d['environment_mf'].ravel(),
-            'nmr_RP100Node_CH1': d.environment_nmr_RP100Node_CH1.ravel(),
-            'nmr_RP100Node_CH2': d.environment_nmr_RP100Node_CH2.ravel(),
-            'r1': d.environment_r1.ravel(),
-            'tps': d.environment_tps.ravel(),            
+            # ENVIRONMENTAL DATA (robust against missing devices)
+            'tt': d.get('environment_tt', []).ravel() if hasattr(d.get('environment_tt', []), 'ravel') else [],
+            'mf': d.get('environment_mf', []).ravel() if hasattr(d.get('environment_mf', []), 'ravel') else [],
+            'nmr_TSSOP16': d.get('environment_nmr_TSSOP16', []).ravel() if hasattr(d.get('environment_nmr_TSSOP16', []), 'ravel') else [],
+            'nmr_RP100Node_CH1': d.get('environment_nmr_RP100Node_CH1', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH1', []), 'ravel') else [],
+            'nmr_RP100Node_CH2': d.get('environment_nmr_RP100Node_CH2', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH2', []), 'ravel') else [],
+            'r1': d.get('environment_r1', []).ravel() if hasattr(d.get('environment_r1', []), 'ravel') else [],
+            'tps': d.get('environment_tps', []).ravel() if hasattr(d.get('environment_tps', []), 'ravel') else [],
+                  
         }
         
         tab_specific_data = self.get_tab_specific_exported_data()
