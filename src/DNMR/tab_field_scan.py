@@ -74,10 +74,15 @@ class TabFieldScan(Tab):
             self.data[1] = M
 
 
-    def get_exported_data(self):
+    def get_tab_specific_exported_data(self):
+        '''Gets the data specific to this tab for export. This is called 
+        by the main window when the export button is clicked.'''
         index = self.fileselector.spinbox_index.value()
-        return { 'times': self.data_widgets['tab_phase'].data[0][index],
-                 'complexes': self.data_widgets['tab_phase'].data[1][index],
-                 'fields': self.data[0],
-                 'magnitudes': self.data[1],
-               }
+        tab_specific_data = { 
+            'index': index,
+            'times': self.data_widgets['tab_phase'].data[0][index],
+            'complexes': self.data_widgets['tab_phase'].data[1][index],
+            'fields': self.data[0],
+            'magnitudes': self.data[1]
+        }
+        return tab_specific_data

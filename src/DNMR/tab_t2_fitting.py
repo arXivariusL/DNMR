@@ -395,7 +395,6 @@ class TabT2Fit(Tab):
     def get_tab_specific_exported_data(self):
         '''Gets the data specific to this tab for export. This is called 
         by the main window when the export button is clicked.'''
-        d = self.fileselector.data
         tab_specific_data = {            
             # T2 plot
             'delays': self.data[0],
@@ -413,17 +412,6 @@ class TabT2Fit(Tab):
             'fix r': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][2].is_fixed(),
             'r fit result': float(self.x0[2]) if self.x0 is not None else 'None',
             'r fit uncertainty': float(self.sigmas[2]) if self.sigmas is not None else 'None',
-            
-            # Pulse sequence (tab specific since other tabs can have different pulse sequences)
-            'delay times 0': d.sequence['0'].delay_time.ravel(),
-            'phase cycles 0': d.sequence['0'].phase_cycle.ravel(),
-            'pulse heights 0': d.sequence['0'].pulse_height.ravel(),
-            'pulse widths 0': d.sequence['0'].pulse_width.ravel(),
-
-            'delay times 1': d.sequence['1'].delay_time.ravel(),
-            'phase cycles 1': d.sequence['1'].phase_cycle.ravel(),
-            'pulse heights 1': d.sequence['1'].pulse_height.ravel(),
-            'pulse widths 1': d.sequence['1'].pulse_width.ravel(),
         }
         return tab_specific_data
     

@@ -162,12 +162,15 @@ class TabEnvironment(Tab):
             y_values
         )
 
-    def get_exported_data(self):
-
+    def get_tab_specific_exported_data(self):
+        '''Gets the data specific to this tab for export. This is called 
+        by the main window when the export button is clicked.'''
+        
         x_parameter = self.combo_x.currentText()
         y_parameter = self.combo_y.currentText()
 
-        return {
+        tab_specific_data = {
             x_parameter: self.data[0],
             y_parameter: self.data[1]
         }
+        return tab_specific_data

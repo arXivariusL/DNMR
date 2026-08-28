@@ -135,11 +135,16 @@ class TabPeakAmplitude(Tab):
         
         self.data = (indices, integrals)
 
-    def get_exported_data(self):
+   
+    def get_tab_specific_exported_data(self):
+        '''Gets the data specific to this tab for export. This is called 
+        by the main window when the export button is clicked.'''
         index = self.fileselector.spinbox_index.value()
-        return { 'frequencies (MHz)': self.data_widgets['tab_ft'].data[0][index],
-                 'fft': self.data_widgets['tab_ft'].data[1][index],
-                 self.combobox_labelling.currentText(): self.data[0],
-                 'integrals': self.data[1],
-               }
-    
+        tab_specific_data = { 
+            'frequencies (MHz)': self.data_widgets['tab_ft'].data[0][index],
+            'fft': self.data_widgets['tab_ft'].data[1][index],
+            self.combobox_labelling.currentText(): self.data[0],
+            'integrals': self.data[1],
+            'use integrated FT': self.checkbox_integrate.isChecked()
+        }
+        return tab_specific_data

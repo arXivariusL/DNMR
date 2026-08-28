@@ -560,23 +560,7 @@ class TabT1Fit(Tab):
             'T1 fit uncertainty': float(self.sigmas[2]) if self.sigmas is not None else 'None',
             'fix r': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][3].is_fixed(),
             'r fit result': float(self.x0[3]) if self.x0 is not None else 'None',
-            'r fit uncertainty': float(self.sigmas[3]) if self.sigmas is not None else 'None',
-
-            # Pulse sequence (tab specific since other tabs can have different pulse sequences)
-            'delay times 0': d.sequence['0'].delay_time.ravel(),
-            'phase cycles 0': d.sequence['0'].phase_cycle.ravel(),
-            'pulse heights 0': d.sequence['0'].pulse_height.ravel(),
-            'pulse widths 0': d.sequence['0'].pulse_width.ravel(),
-
-            'delay times 1': d.sequence['1'].delay_time.ravel(),
-            'phase cycles 1': d.sequence['1'].phase_cycle.ravel(),
-            'pulse heights 1': d.sequence['1'].pulse_height.ravel(),
-            'pulse widths 1': d.sequence['1'].pulse_width.ravel(),
-
-            'delay times 2': d.sequence['2'].delay_time.ravel(),
-            'phase cycles 2': d.sequence['2'].phase_cycle.ravel(),
-            'pulse heights 2': d.sequence['2'].pulse_height.ravel(),
-            'pulse widths 2': d.sequence['2'].pulse_width.ravel()  
+            'r fit uncertainty': float(self.sigmas[3]) if self.sigmas is not None else 'None' 
         }
         return tab_specific_data
     

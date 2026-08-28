@@ -77,6 +77,7 @@ class Tab(QWidget):
             'filter type': self.data_widgets['tab_phase'].combobox_filtertype.currentText(),
             'filter width': self.data_widgets['tab_phase'].spinbox_filtersize.value(),
             'peak frequency': self.data_widgets['tab_phase'].get_global_peaklocs(), 
+            # 'left shift': self.data_widgets['tab_phase'].spinbox_peak_position.value(),
             'windowing activated': self.data_widgets['tab_phase'].checkbox_multfilter.isChecked(),          
             'windowing type': self.data_widgets['tab_phase'].combobox_multfiltertype.currentText(),
             'windowing width': self.data_widgets['tab_phase'].spinbox_multfiltersize.value(),
@@ -109,9 +110,23 @@ class Tab(QWidget):
             'nmr_RP100Node_CH1': d.get('environment_nmr_RP100Node_CH1', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH1', []), 'ravel') else [],
             'nmr_RP100Node_CH2': d.get('environment_nmr_RP100Node_CH2', []).ravel() if hasattr(d.get('environment_nmr_RP100Node_CH2', []), 'ravel') else [],
             'r1': d.get('environment_r1', []).ravel() if hasattr(d.get('environment_r1', []), 'ravel') else [],
-            'tps': d.get('environment_tps', []).ravel() if hasattr(d.get('environment_tps', []), 'ravel') else [],
-                  
+            'tps': d.get('environment_tps', []).ravel() if hasattr(d.get('environment_tps', []), 'ravel') else []
         }
+
+        # PULSE SEQUENCE: iterate over all pulses, no matter how many there are
+        seq = d.sequence
+        for pulse_key in sorted(seq.data.keys()): 
+            if pulse_key == 'size':
+                continue  # skip the metadata 'size' entry if present
+
+            base = f'pulse {pulse_key}'
+            common_data[f'{base} delay times'] = seq[pulse_key].delay_time.ravel()
+            common_data[f'{base} phase cycles'] = seq[pulse_key].phase_cycle.ravel()
+            common_data[f'{base} pulse heights'] = seq[pulse_key].pulse_height.ravel()
+            common_data[f'{base} pulse widths'] = seq[pulse_key].pulse_width.ravel()
+
+
+
         
         tab_specific_data = self.get_tab_specific_exported_data()
         table = {**common_data, **tab_specific_data}
