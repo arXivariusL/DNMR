@@ -556,8 +556,8 @@ class TabT1Fit(Tab):
             's fit result': float(self.x0[1]) if self.x0 is not None else 'None',
             's fit uncertainty': float(self.sigmas[1]) if self.sigmas is not None else 'None',
             'fix T1': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][2].is_fixed(),
-            'T1 fit result': float(self.x0[2]) if self.x0 is not None else 'None',
-            'T1 fit uncertainty': float(self.sigmas[2]) if self.sigmas is not None else 'None',
+            'T1 fit result [us]': float(self.x0[2]) if self.x0 is not None else 'None',
+            'T1 fit uncertainty [us]': float(self.sigmas[2]) if self.sigmas is not None else 'None',
             'fix r': self.output_frames[self.combobox_fittingroutine.currentText()]['widgets'][3].is_fixed(),
             'r fit result': float(self.x0[3]) if self.x0 is not None else 'None',
             'r fit uncertainty': float(self.sigmas[3]) if self.sigmas is not None else 'None' 
