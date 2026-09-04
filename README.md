@@ -1,12 +1,13 @@
-# DNMR-T2
+# DNMR
 
-This repository contains a modified version of **DNMR** with additional tools for **T2 analysis**, **T1 fitting**, and **data visualization**.
+This repository contains a modified version of **DNMR** with additional tools for **T2 analysis**, **T1 fitting**, **data visualization** and exporting of data together with analysis settings.
 
 The original **DNMR** software was developed by **Davis Garrad**.  
 Original repository: https://github.com/Davis-Garrad/DNMR
 
-The extensions included in this repository were implemented by **Giacomo Panzera**.  
-Contact: giacomo.panzera@mail.polimi.it
+The repository was extended by **Giacomo Panzera** later.
+His repository: https://github.com/Jack-er-programmatore/DNMR-T2
+
 
 ## Note
 
@@ -33,18 +34,13 @@ S(t) = A * exp(-(t / T2)^r) + c
 
 The **T1 Fit** tab includes multiple fitting models for the analysis of T1 relaxation experiments.
 
-Additional fitting functions have been implemented to provide greater flexibility when fitting experimental data.
-
 ### Plotting Tab
 
-The **Plotting** tab allows visualization of acquired experimental variables, including:
+The **Plotting** tab allows visualization of acquired experimental variables, including environmental ones. This tab provides a convenient way to inspect experimental conditions and monitor parameter evolution throughout measurements.
 
-- capacitance;
-- temperature;
-- magnetic field;
-- and other acquisition parameters stored in the dataset.
+### Exporting Data
 
-This tab provides a convenient way to inspect experimental conditions and monitor parameter evolution throughout measurements.
+This feature existed before, but was strongly modified. The export will now give a csv file containing the fitted data, results and settings used for the fit. This is intended to make any analysis reproducible later.
 
 ## Installation
 
@@ -100,7 +96,7 @@ If this happens, run the following command once, while the virtual environment i
 python -c "from pathlib import Path; import sysconfig; p=Path(sysconfig.get_paths()['purelib'])/'pytnt'/'processTNT.py'; s=p.read_text(); s=s.replace('import numpy.dual as npfast', 'import numpy.linalg as npfast'); p.write_text(s); print('Patch pytnt done:', p)"
 ```
 
-## Run DNMR-T2
+## Run DNMR
 
 With the virtual environment active, run:
 
